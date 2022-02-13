@@ -20,22 +20,22 @@ function recursiva(valor,cont){
 	}else return recursiva(valor,cont);
 }
 
-(function(){
+(function(){ //Panel o cancha en donde se moveran los objetos bola y barra.
    self.Board = function(width,height){
-	this.width = width;
-	this.height = height;
-	this.playing = false;
-	this.game_over = false;
+	this.width = width; //le doamos ancho
+	this.height = height; // le damos alto
+	this.playing = false; //si juego esta en uso
+	this.game_over = false;// si juego terminó
 	this.bars = [];
 	this.ball = null;
 	this.playing = false;
 
 }
 
-self.Board.prototype = {
+self.Board.prototype = { //se declaran elementos del prototype
 	get elements(){
-		var elements = this.bars.map(function(bar){ return bar;});
-		elements.push(this.ball);
+		var elements = this.bars.map(function(bar){ return bar;});//retorna las barras
+		elements.push(this.ball); //esta es la bola
 		return elements;
 	}
 
@@ -44,18 +44,19 @@ self.Board.prototype = {
 })();
 
 (function(){
+// Objeto barra que se van a encargar de cambiar direccion de la bola
 	self.Bar = function(x,y,width,height,board){
-		this.x = x;
-		this.y = y;
-		this.width = width;
-		this.height = height;
-		this.board = board;
+		this.x = x; //Donde va a estar x
+		this.y = y;  //Donde va a estar y
+		this.width = width;  //Ancho
+		this.height = height; //Alto
+		this.board = board; //como se comenta anteriormente, el objeto que dibuja la pizarra
 
-		this.board.bars.push(this);
-		this.kind = "rectangle";
+		this.board.bars.push(this);//le setea el objeto barra al pizarron
+		this.kind = "rectangle";//lo dibuja como rectangulo
 		this.speed = 10;
 	}
-	self.Bar.prototype={
+	self.Bar.prototype={ //funciones que se encargan del movimiento de las barras
 		down:function(){
 			this.y += this.speed;
 		},
@@ -71,6 +72,7 @@ self.Board.prototype = {
 })();
 
 (function(){
+	//Objeto bola que va a chocar contra las barras
   self.Ball = function(x,y,radius,board){
   	this.x = x;
   	this.y = y;
@@ -100,7 +102,7 @@ self.Board.prototype = {
 			return this.radius * 2;
 		},
 		
-		collision: function(bar){
+		collision: function(bar){//funcion que controla laas colisiones entre las barras y la bola
 			var relative_intersect_y = (bar.y + (bar.height/2)) - this.y;
 			var normalized_intersect_y = relative_intersect_y / (bar.height / 2);
 
@@ -116,24 +118,26 @@ self.Board.prototype = {
 })();
 
 (function(){
+	//Vista que llama a la clase que dibuja el cuadrado
 	self.BoardView = function(canvas,board){
 		this.canvas = canvas;
 		this.canvas.width = board.width;
 		this.canvas.height = board.height;
 		this.board = board;
-		this.ctx = canvas.getContext("2d");
+		this.ctx = canvas.getContext("2d");//contexto con el cual se dibuja en javascript
 	} 
 	self.BoardView.prototype ={
 		clean:function(){
 			this.ctx.clearRect(0,0,this.board.width,this.board.height)
 		},
-		draw:function(){
+		draw:function(){//le dice que elemento debe dibujar
 			for(var i= this.board.elements.length-1;i>=0;i--){
 			var el = this.board.elements[i];
 			draw(this.ctx,el);
 			};
 		},
 		check_collisions: function(){
+			//verifica las coliciones 
 			for(var i= this.board.bars.length -1; i>=0; i--){
 				var bar = this.board.bars[i];
 				if(hit(bar,this.board.ball)){
@@ -141,8 +145,8 @@ self.Board.prototype = {
 				}
 			}
 		},
-		play:function(){
-			if(this.board.playing){
+		play:function(){//Metodo que comienza el juego
+			if(this.board.playing){//si esta jugando, va borrando para que no quede la barra estirada
 			 this.clean();
    			 this.draw();
    			 this.check_collisions();
@@ -175,7 +179,7 @@ self.Board.prototype = {
 
 	}
 	function draw(ctx,element){
-
+        //Se encarga de dibura los elementos barras y circulo
 		switch (element.kind){
 		case "rectangle":
 			ctx.fillRect(element.x,element.y,element.width, element.height);
@@ -199,27 +203,25 @@ var board_view = new BoardView(canvas,board);
 var ball = new Ball(350,100,10,board);
 
 document.addEventListener("keydown", function(ev){
-	if(ev.keyCode == 38){
+	//funcion que lee las teclas que son presionadas
+	if(ev.keyCode == 38){//si w
 		bar.up();
 	}
-	else if(ev.keyCode == 40){
+	else if(ev.keyCode == 40){//si s
 		bar.down();
-	}else if(ev.keyCode === 87){
+	}else if(ev.keyCode === 87){//tecla arriba
 		bar_2.up();
 	}
-	else if(ev.keyCode === 83){
+	else if(ev.keyCode === 83){//tecla abajo
 		bar_2.down();
-	}else if(ev.keyCode==32){
+	}else if(ev.keyCode==32){//barra espaciadora, pausa el juego
 		ev.preventDefault();
-		board.playing = !board.playing;
+		board.playing = !board.playing;//si esta en movimiento, lo pausa sino lo mueve
 	}
 });
 
 board_view.draw();
 window.requestAnimationFrame(controller);
-setTimeout(function(){
-	ball.direction = -1; 
-},2000);
 
 function controller(){
     board_view.play();
